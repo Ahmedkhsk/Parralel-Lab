@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <semaphore.h>
 #include <unistd.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -309,12 +310,63 @@ public:
     }
 };
 
+class Q4
+{
+private:
+    static const int N = 5;
+    static inline pthread_mutex_t forks[N];
+    static inline pthread_mutex_t mymutex = PTHREAD_MUTEX_INITIALIZER;
+
+public:
+    static void* philosopher(void* arg)
+    {
+        int id = intptr_t(arg);
+        int left = id;
+        int right = (id + 1) % N;
+
+        while(true)
+        {
+            pthread_mutex_lock(&mymutex);
+            cout << "left fork " << id << endl;
+            pthread_mutex_unlock(&mymutex);
+
+            pthread_mutex_lock(&forks[left]);
+            Sleep(5);
+
+            pthread_mutex_lock(&forks[right]);
+            cout << "right fork " << id << endl;
+
+            cout << "Philosopher " << id << " is eating" << endl;
+
+            pthread_mutex_unlock(&forks[left]);
+            pthread_mutex_unlock(&forks[right]);
+        }
+        return NULL;
+    }
+
+    static void run()
+    {
+        for(int i = 0; i < N; i++)
+            pthread_mutex_init(&forks[i], NULL);
+
+        pthread_t philosophers[N];
+
+        for(int i = 0; i < N; i++)
+        {
+            pthread_create(&philosophers[i], NULL, philosopher, (void*)i);
+        }
+
+        for(int i = 0; i < N; i++)
+            pthread_join(philosophers[i], NULL);
+    }
+};
 
 int main()
 {
     srand(time(NULL));
 
     /*
+
     int n;
     cout<<"Entre Size: ";
     cin>>n;
@@ -329,9 +381,14 @@ int main()
     cout<<endl<<"Main of Q2"<<endl;
     Q2::setSize(n);
     Q2::run();
+
+    cout<<endl<<"Main of Q3"<<endl;
+    Q3::run();
+
     */
 
-    Q3::run();
+    cout<<endl<<"Main of Q4"<<endl;
+    Q4::run();
 
     return 0;
 }
