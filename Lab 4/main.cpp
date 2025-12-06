@@ -256,7 +256,6 @@ public:
                 sharedNumber = rand() % 10;
                 cout << name << " Generate " << sharedNumber << endl;
                 numCollected = false;
-                usleep(1000);
             }
 
             pthread_mutex_unlock(&myMutex);
@@ -309,6 +308,7 @@ public:
             cout << endl << "odd counter reacher 100 first" << endl;
     }
 };
+
 
 int main()
 {
