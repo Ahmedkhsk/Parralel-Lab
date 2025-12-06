@@ -132,6 +132,8 @@ int main()
 {
     srand(time(NULL));
 
+    cout<<"main of Q1"<<endl;
+
     int n;
     cout<<"Entre Size of cigarette: ";
     cin>>n;
