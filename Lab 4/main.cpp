@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-
+#include <semaphore.h>
 using namespace std;
 
 class Q1
@@ -126,20 +126,128 @@ public:
     }
 };
 
+class Q2
+{
+private:
+    static inline sem_t VegetableSem, BeefSem, BreadSem, AssemblerSem;
+    static inline bool isFinished = false;
+    static inline int sizeOfHamburger = 0;
+    static inline int counter = 0;
 
+public:
+    static void setSize(int n)
+    {
+        sizeOfHamburger = n;
+    }
+
+    static void* VegetableFun(void* arg)
+    {
+        while(!isFinished)
+        {
+            sem_wait(&VegetableSem);
+
+            if(isFinished)
+                break;
+
+            cout<<"vegetable can be used"<<endl;
+            sem_post(&AssemblerSem);
+        }
+        return nullptr;
+    }
+
+    static void* BeefFun(void* arg)
+    {
+        while(!isFinished)
+        {
+            sem_wait(&BeefSem);
+
+            if(isFinished)
+                break;
+
+            cout<<"beef can be used"<<endl;
+            sem_post(&AssemblerSem);
+
+        }
+        return nullptr;
+    }
+
+    static void* BreadFun(void* arg)
+    {
+        while(!isFinished)
+        {
+            sem_wait(&BreadSem);
+
+            if(isFinished)
+                break;
+            cout<<"Bread can be used"<<endl;
+            sem_post(&AssemblerSem);
+        }
+        return nullptr;
+    }
+
+    static void* AssemblerFun(void* arg)
+    {
+        while(!isFinished)
+        {
+            sem_wait(&AssemblerSem);
+            sem_wait(&AssemblerSem);
+            sem_wait(&AssemblerSem);
+
+            if(isFinished)
+                break;
+
+            counter++;
+            cout<<counter<<": assembling the hamburger"<<endl;
+
+            if(counter == sizeOfHamburger)
+                isFinished = true;
+
+            sem_post(&VegetableSem);
+            sem_post(&BeefSem);
+            sem_post(&BreadSem);
+        }
+        return nullptr;
+    }
+
+    static void run()
+    {
+        pthread_t VegetableWorker, BeefWorker, BreadWorker, Assembler;
+
+        sem_init(&VegetableSem, 0, 1);
+        sem_init(&BeefSem, 0, 1);
+        sem_init(&BreadSem, 0, 1);
+        sem_init(&AssemblerSem, 0, 0);
+
+        pthread_create(&VegetableWorker, NULL, VegetableFun, NULL);
+        pthread_create(&BeefWorker, NULL, BeefFun, NULL);
+        pthread_create(&BreadWorker, NULL, BreadFun, NULL);
+        pthread_create(&Assembler, NULL, AssemblerFun, NULL);
+
+        pthread_join(VegetableWorker, NULL);
+        pthread_join(BeefWorker, NULL);
+        pthread_join(BreadWorker, NULL);
+        pthread_join(Assembler, NULL);
+    }
+};
 
 int main()
 {
     srand(time(NULL));
 
-    cout<<"main of Q1"<<endl;
-
     int n;
-    cout<<"Entre Size of cigarette: ";
+    cout<<"Entre Size: ";
     cin>>n;
+
+
+    cout<<"Main of Q1"<<endl;
 
     Q1::setSize(n);
     Q1::run();
+
+
+    cout<<endl<<"Main of Q2"<<endl;
+    Q2::setSize(n);
+    Q2::run();
 
     return 0;
 }
