@@ -1,5 +1,7 @@
 #include <bits/stdc++.h>
 #include <semaphore.h>
+#include <unistd.h>
+
 using namespace std;
 
 class Q1
@@ -230,10 +232,89 @@ public:
     }
 };
 
+class Q3
+{
+private:
+    static inline int countEven = 0;
+    static inline int countOdd  = 0;
+    static inline int sharedNumber = 0;
+    static inline bool isFinished = false;
+    static inline bool numCollected = true;
+    static inline pthread_mutex_t myMutex = PTHREAD_MUTEX_INITIALIZER;
+
+public:
+    static void* AgentFun(void* args)
+    {
+        string name = *(string*) args;
+
+        while(!isFinished)
+        {
+            pthread_mutex_lock(&myMutex);
+
+            if(numCollected && !isFinished)
+            {
+                sharedNumber = rand() % 10;
+                cout << name << " Generate " << sharedNumber << endl;
+                numCollected = false;
+                usleep(1000);
+            }
+
+            pthread_mutex_unlock(&myMutex);
+        }
+        return nullptr;
+    }
+
+    static void* CollectorFun(void* args)
+    {
+        while(!isFinished)
+        {
+            pthread_mutex_lock(&myMutex);
+
+            if(!numCollected && !isFinished)
+            {
+                if(sharedNumber % 2 == 0)
+                    countEven++;
+                else
+                    countOdd++;
+
+                numCollected = true;
+
+                if(countEven >= 100 || countOdd >= 100)
+                    isFinished = true;
+            }
+
+            pthread_mutex_unlock(&myMutex);
+        }
+        return nullptr;
+    }
+
+    static void run()
+    {
+        pthread_t Agent1, Agent2, Collector;
+
+        string Ag1 = "Agent1";
+        string Ag2 = "Agent2";
+
+        pthread_create(&Agent1, NULL, AgentFun, &Ag1);
+        pthread_create(&Agent2, NULL, AgentFun, &Ag2);
+        pthread_create(&Collector, NULL, CollectorFun, NULL);
+
+        pthread_join(Agent1, NULL);
+        pthread_join(Agent2, NULL);
+        pthread_join(Collector, NULL);
+
+        if(countEven >= 100)
+            cout << endl << "even counter reacher 100 first" << endl;
+        else
+            cout << endl << "odd counter reacher 100 first" << endl;
+    }
+};
+
 int main()
 {
     srand(time(NULL));
 
+    /*
     int n;
     cout<<"Entre Size: ";
     cin>>n;
@@ -248,6 +329,9 @@ int main()
     cout<<endl<<"Main of Q2"<<endl;
     Q2::setSize(n);
     Q2::run();
+    */
+
+    Q3::run();
 
     return 0;
 }
