@@ -165,10 +165,79 @@ public:
     }
 };
 
+class Q4
+{
+public:
+    struct Data
+    {
+        int n1, n2;
+    };
+
+    inline static int N;
+    inline static int numberOfThread = 10;
+    inline static int range;
+    inline static pthread_mutex_t myMutex;
+    inline static Data* arr;
+
+    static int GCD_Fun(int a, int b)
+    {
+        if (b == 0)
+            return a;
+        return GCD_Fun(b, a % b);
+    }
+
+    static void* f(void* arg)
+    {
+        int id = (intptr_t)arg;
+        int start = id * range;
+        int endThread = (id == numberOfThread - 1) ? N : (id + 1) * range;
+
+        for (int i = start; i < endThread; i++)
+        {
+            pthread_mutex_lock(&myMutex);
+            cout << "( " << arr[i].n1 << " , " << arr[i].n2 << " ) => "
+                 << GCD_Fun(arr[i].n1, arr[i].n2) << endl;
+            pthread_mutex_unlock(&myMutex);
+        }
+
+        pthread_exit(NULL);
+        return NULL;
+    }
+
+    static void run()
+    {
+        cout << "Entre N: ";
+        cin >> N;
+
+        range = N / numberOfThread;
+
+        arr = new Data[N];
+
+        for (int i = 0; i < N; i++)
+        {
+            arr[i].n1 = rand() % 10 + 2;
+            arr[i].n2 = rand() % 10 + 2;
+        }
+
+        pthread_mutex_init(&myMutex, NULL);
+
+        pthread_t threads[numberOfThread];
+
+        for (int i = 0; i < numberOfThread; i++)
+            pthread_create(&threads[i], NULL, f, (void*)(intptr_t)i);
+
+        for (int i = 0; i < numberOfThread; i++)
+            pthread_join(threads[i], NULL);
+
+        delete[] arr;
+    }
+};
 
 int main()
 {
     Q1::run();
     Q2::run();
+    Q4::run();
+    
     return 0;
 }
