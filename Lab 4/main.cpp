@@ -487,6 +487,88 @@ public:
     }
 };
 
+class Q3AnthorSolution
+{
+public:
+    inline static pthread_mutex_t myMutex;
+    inline static int temp = 0;
+    inline static int num = 0;
+    inline static int totalEvenCount = 0;
+    inline static int totalOddCount = 0;
+
+    static void* Task_Agent(void* arg)
+    {
+        string name = *(string*)arg;
+
+        while (true)
+        {
+            pthread_mutex_lock(&myMutex);
+
+            if (temp == 0)
+            {
+                num = rand() % 10 + 1;
+                cout << name << " create Number: " << num << endl;
+                temp = 1;
+            }
+
+            pthread_mutex_unlock(&myMutex);
+        }
+
+        return NULL;
+    }
+
+    static void* Task_Collector(void* arg)
+    {
+        while (true)
+        {
+            pthread_mutex_lock(&myMutex);
+
+            if (temp == 1)
+            {
+                if (num % 2 == 0)
+                    totalEvenCount++;
+                else
+                    totalOddCount++;
+
+                cout << "Collector Done" << endl;
+
+                if (totalEvenCount == 100)
+                {
+                    cout << "The total Count of Even Reached 100 First" << endl;
+                    exit(0);
+                }
+                else if (totalOddCount == 100)
+                {
+                    cout << "The total Count of Odd Reached 100 First" << endl;
+                    exit(0);
+                }
+
+                temp = 0;
+            }
+
+            pthread_mutex_unlock(&myMutex);
+        }
+
+        return NULL;
+    }
+
+    static void run()
+    {
+        pthread_t A, B, collector;
+        pthread_mutex_init(&myMutex, NULL);
+
+        string name1 = "Agent1", name2 = "Agent2";
+
+        pthread_create(&A, NULL, Task_Agent, &name1);
+        pthread_create(&B, NULL, Task_Agent, &name2);
+        pthread_create(&collector, NULL, Task_Collector, NULL);
+
+        pthread_join(A, NULL);
+        pthread_join(B, NULL);
+        pthread_join(collector, NULL);
+    }
+};
+
 class Q4
 {
 private:
@@ -535,6 +617,52 @@ public:
 
         for(int i = 0; i < N; i++)
             pthread_join(philosophers[i], NULL);
+    }
+};
+
+class Q4AnthorSolution
+{
+public:
+    inline static pthread_mutex_t myMutex;
+    inline static int forks[5] = {1, 1, 1, 1, 1};
+
+    static void* Task(void* arg)
+    {
+        int id = (intptr_t)arg;
+
+        while (true)
+        {
+            pthread_mutex_lock(&myMutex);
+
+            if (forks[id] == 1 && forks[(id + 1) % 5] == 1)
+            {
+                cout << "philo " << id << " Think" << endl;
+
+                forks[id] = 0;
+                forks[(id + 1) % 5] = 0;
+
+                cout << "philo " << id << " Eating" << endl;
+
+                forks[id] = 1;
+                forks[(id + 1) % 5] = 1;
+            }
+
+            pthread_mutex_unlock(&myMutex);
+        }
+
+        return NULL;
+    }
+
+    static void run()
+    {
+        pthread_t threads[5];
+        pthread_mutex_init(&myMutex, NULL);
+
+        for (int i = 0; i < 5; i++)
+            pthread_create(&threads[i], NULL, Task, (void*)(intptr_t)i);
+
+        for (int i = 0; i < 5; i++)
+            pthread_join(threads[i], NULL);
     }
 };
 
