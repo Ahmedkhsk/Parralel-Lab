@@ -129,6 +129,97 @@ public:
     }
 };
 
+class Q1AnthorSolution
+{
+public:
+    inline static pthread_mutex_t myMutex;
+    inline static int temp = 0;
+
+    static void* Task_A(void* arg)
+    {
+        while (true)
+        {
+            while (temp != 1);
+
+            cout << "Task A Done" << endl;
+            temp = 0;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_B(void* arg)
+    {
+        while (true)
+        {
+            while (temp != 2);
+
+            cout << "Task B Done" << endl;
+            temp = 0;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_C(void* arg)
+    {
+        while (true)
+        {
+            while (temp != 3);
+
+            cout << "Task C Done" << endl;
+            temp = 0;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_Agent(void* arg)
+    {
+        while (true)
+        {
+            while (temp != 0);
+
+            int n = rand() % 3 + 1;
+
+            if (n == 1)
+            {
+                cout << "Agent Allow to  Start Task_A: " << endl;
+                temp = 1;
+            }
+            else if (n == 2)
+            {
+                cout << "Agent Allow to  Start Task_B: " << endl;
+                temp = 2;
+            }
+            else if (n == 3)
+            {
+                cout << "Agent Allow to  Start Task_C: " << endl;
+                temp = 3;
+            }
+        }
+
+        return NULL;
+    }
+
+    static void run()
+    {
+        pthread_t A, B, C, Agent;
+        pthread_mutex_init(&myMutex, NULL);
+
+        pthread_create(&A, NULL, Task_A, NULL);
+        pthread_create(&B, NULL, Task_B, NULL);
+        pthread_create(&C, NULL, Task_C, NULL);
+        pthread_create(&Agent, NULL, Task_Agent, NULL);
+
+        pthread_join(A, NULL);
+        pthread_join(B, NULL);
+        pthread_join(C, NULL);
+        pthread_join(Agent, NULL);
+    }
+};
+
+
 class Q2
 {
 private:
