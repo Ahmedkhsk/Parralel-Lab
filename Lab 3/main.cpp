@@ -66,8 +66,109 @@ public:
     }
 };
 
+class Q2
+{
+public:
+    inline static int N;
+    inline static int numberOfThread = 10;
+    inline static int range;
+    inline static int* arr;
+    inline static int* evenArray;
+    inline static int* oddArray;
+    inline static pthread_mutex_t myMutex;
+
+    static void* f(void* arg)
+    {
+        int id = (intptr_t)arg;
+        int start = id * range;
+        int endThread = (id == numberOfThread - 1) ? N : (id + 1) * range;
+
+        for (int i = start; i < endThread; i++)
+        {
+            int e = arr[i];
+            int localEven = 0;
+            int localOdd = 0;
+            int localSumEven = 0;
+            int localSumOdd = 0;
+
+            while (e != 0)
+            {
+                int temp = e % 10;
+                if (temp % 2 == 0)
+                {
+                    localEven++;
+                    localSumEven += temp;
+                }
+                else
+                {
+                    localOdd++;
+                    localSumOdd += temp;
+                }
+                e /= 10;
+            }
+
+            evenArray[i] = localEven;
+            oddArray[i] = localOdd;
+
+            pthread_mutex_lock(&myMutex);
+            evenArray[N] += localSumEven;
+            oddArray[N] += localSumOdd;
+            pthread_mutex_unlock(&myMutex);
+        }
+
+        pthread_exit(NULL);
+        return NULL;
+    }
+
+    static void run()
+    {
+        cout << "Entre N: ";
+        cin >> N;
+
+        range = N / numberOfThread;
+
+        arr = new int[N];
+        evenArray = new int[N + 1];
+        oddArray = new int[N + 1];
+
+        evenArray[N] = 0;
+        oddArray[N] = 0;
+
+        for (int i = 0; i < N; i++)
+            arr[i] = rand() % 10000;
+
+        pthread_mutex_init(&myMutex, NULL);
+
+        pthread_t threads[numberOfThread];
+
+        for (int i = 0; i < numberOfThread; i++)
+            pthread_create(&threads[i], NULL, f, (void*)(intptr_t)i);
+
+        for (int i = 0; i < numberOfThread; i++)
+            pthread_join(threads[i], NULL);
+
+        cout << "Array: ";
+        for (int i = 0; i < N; i++)
+            cout << arr[i] << " ";
+
+        cout << endl << "Even Array: ";
+        for (int i = 0; i <= N; i++)
+            cout << evenArray[i] << " ";
+
+        cout << endl << "Odd Array: ";
+        for (int i = 0; i <= N; i++)
+            cout << oddArray[i] << " ";
+
+        delete[] arr;
+        delete[] evenArray;
+        delete[] oddArray;
+    }
+};
+
+
 int main()
 {
     Q1::run();
+    Q2::run();
     return 0;
 }
