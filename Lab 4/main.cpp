@@ -219,7 +219,6 @@ public:
     }
 };
 
-
 class Q2
 {
 private:
@@ -321,6 +320,93 @@ public:
         pthread_join(BeefWorker, NULL);
         pthread_join(BreadWorker, NULL);
         pthread_join(Assembler, NULL);
+    }
+};
+
+class Q2AnthorSolution
+{
+public:
+    inline static pthread_mutex_t myMutex;
+    inline static int temp1 = 0, temp2 = 0, temp3 = 0;
+
+    static void* Task_A(void* arg)
+    {
+        while (true)
+        {
+            while (temp1 != 0);
+
+            pthread_mutex_lock(&myMutex);
+            cout << "Task A Done" << endl;
+            pthread_mutex_unlock(&myMutex);
+
+            temp1 = 1;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_B(void* arg)
+    {
+        while (true)
+        {
+            while (temp2 != 0);
+
+            pthread_mutex_lock(&myMutex);
+            cout << "Task B Done" << endl;
+            pthread_mutex_unlock(&myMutex);
+
+            temp2 = 1;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_C(void* arg)
+    {
+        while (true)
+        {
+            while (temp3 != 0);
+
+            pthread_mutex_lock(&myMutex);
+            cout << "Task C Done" << endl;
+            pthread_mutex_unlock(&myMutex);
+
+            temp3 = 1;
+        }
+
+        return NULL;
+    }
+
+    static void* Task_Assembler(void* arg)
+    {
+        while (true)
+        {
+            while (temp1 != 1 || temp2 != 1 || temp3 != 1);
+
+            cout << "Assembler Done" << endl;
+
+            temp1 = 0;
+            temp2 = 0;
+            temp3 = 0;
+        }
+
+        return NULL;
+    }
+
+    static void run()
+    {
+        pthread_t A, B, C, assembler;
+        pthread_mutex_init(&myMutex, NULL);
+
+        pthread_create(&A, NULL, Task_A, NULL);
+        pthread_create(&B, NULL, Task_B, NULL);
+        pthread_create(&C, NULL, Task_C, NULL);
+        pthread_create(&assembler, NULL, Task_Assembler, NULL);
+
+        pthread_join(A, NULL);
+        pthread_join(B, NULL);
+        pthread_join(C, NULL);
+        pthread_join(assembler, NULL);
     }
 };
 
